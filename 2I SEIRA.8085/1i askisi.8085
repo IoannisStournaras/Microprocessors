@@ -1,0 +1,118 @@
+IN 10H
+MVI H,00H
+MVI D,00H
+MVI E,00H
+MVI L,01H
+LXI B,01F4H
+JMP START
+
+LSB_ON:			;routina elegxou LSB
+	LOOP2:
+	MVI A,01H
+	STA 0B00H
+	DI
+	LDA 2000H
+	ANI 01H
+	CPI 01H
+	JNZ LOOP2
+EI			;afou figo apo tin katastasi apenergopoiontas tis diakopes 
+RET			;varaei mono tou diakopi opote meiono kata 1 to metriti diakopon
+			;thetontas ton os -1
+
+STOP:			;routina pou eksipiretei tin katastasi stop
+	LOOP1:
+	MOV A,L		;AN o L einai 1 to programma mou prepei na stamataei
+	CMA
+	STA 3000H
+	MOV A,E
+	CPI 01H
+	JZ LOOP1
+RET
+
+START:
+MVI A,0DH		;energopoio maska diakopon
+SIM
+EI
+	
+LEFT:
+	CALL LSB_ON	;elegxos LSB
+	MVI A,00H
+	STA 0B00H
+	MOV A,E
+	CPI 01H		;elegxos gia L->stop
+	CZ STOP
+	MOV A,D		;elegxos tou D pou kathorizei tin kateuthinsi leitourgias
+	CPI 00H		;me 00 pao aristera
+	JNZ RIGHT		;me FF pao deksia
+	MOV A,L
+	CMA
+	STA 3000H
+	CMA
+	CPI 80H
+	JZ STOPIT		;An ftaso sti gonitsa stamatao
+	DI
+	CALL DELB
+	EI
+	RLC			;Kounao aristera to trenaki
+	MOV L,A
+	JMP LEFT
+RIGHT:
+	CALL LSB_ON	;antistoixa me parapano 
+	MVI A,00H
+	STA 0B00H
+	MOV A,E		;mono pou tora trexo deksia
+	CPI 01H
+	CZ STOP
+	MOV A,D
+	CPI FFH
+	JNZ LEFT
+	MOV A,L
+	CMA
+	STA 3000H
+	CMA
+	CPI 01H
+	JZ STOPIT
+	DI
+	CALL DELB
+	EI
+	RRC
+	MOV L,A
+	JMP RIGHT
+STOPIT:			;katastasi stop aptin opoia feugo 
+	MVI E,01H		;me interrupts gia na ksekiniso pali tin kinisi 
+	CALL STOP
+	MOV A,D		;i kinisi kathorizete pali apton D
+	CPI 00H
+	JZ LEFT
+	JMP RIGHT
+	
+
+INTR_ROUTINE:		; H metritis diakopon 0-2
+	PUSH PSW
+	PUSH B
+	LXI B,0032H
+	CALL DELB
+	LDA 0B00H
+	CPI 01H
+	JZ TELOS
+	INR H		
+	MOV A,H
+	ANI 01H		;an einai 2 tote allazo kateuthinsi kinisis
+	CPI 01H
+	JNZ ZIGOS
+	MVI E,01H		;an einai 1 tote apla theto ton elekti L=1
+	JMP TELOS		;me skopo na prokaleso to STOP
+ZIGOS:
+	MVI E,00H		;akirono to stop
+	MOV A,D		;Antistrofi tou D gia rithmisi tis kateuthinsis
+	CMA
+	MVI H,00H
+	MOV D,A
+TELOS:
+	MVI A,0DH
+	SIM
+	EI
+	POP B
+	POP PSW
+	RET
+END	

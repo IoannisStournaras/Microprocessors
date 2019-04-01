@@ -1,0 +1,49 @@
+	LXI B,0000H	;Αρχικοποίηση
+	MVI E,00H	;
+	MVI D,00H	;
+	JMP FLASH	;
+ONL: 
+	MVI A,00H 	;Βάλε στον Α μηδενικά
+	STA 3000H 	;Γράψε τα περιεχόμενα του Α στη θύρα εξόδου
+	RET 		;Τέλος υπορουτίνας 
+OFFL: 
+	MVI A,FFH 	;Bάλε στον Α άσσους
+	STA 3000H 	;Γράψε τα περιεχόμενα του Α στη θύρα εξόδου
+	RET 		;Γύρισε στο κύριο πρόγραμμα
+DEL:
+	LDA 2000H	;Διάβασε τα 4LSB των διακοπτών
+	ANI 0FH	;
+	MOV C,A	;
+	INX B		;
+	CALL DELB	;
+	INR E		;Αύξησε τον μετρητή επαναλήψεων
+	MOV A,E	;
+	CPI 64H	;100 επαναλήψεις?
+	JNZ DEL	;
+	RET	
+COUNT:
+	MOV A,D	;
+	CPI 00H	;
+	JZ END		;
+	CALL ONL 	;’ναψε τα LEDs
+	CALL DEL	;
+	CALL OFFL 	;Σβήσε τα LEDs
+	CALL DEL	;
+	DCR D		;
+	JMP COUNT	;
+FLASH: 
+	CALL ONL 	;’ναψε τα LEDs
+	CALL DEL	;
+	CALL OFFL 	;Σβήσε τα LEDs
+	CALL DEL	;
+	LDA 2000H	;Διάβασε τα 4MSB
+	RRC		;
+	RRC		;
+	RRC		;
+	RRC		;
+	ANI 0FH	;
+	MOV D,A	;4MSB=>D
+	CPI 00H	;
+	JNZ COUNT	;Αν δεν είναι κλειστοί μέτρα αλλιώς τερμάτισε
+END:	
+	END		

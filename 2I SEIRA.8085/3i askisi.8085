@@ -1,0 +1,75 @@
+IN 10H
+LXI D,0B00H
+MVI A,10H
+STA 0B00H		;Arxikopoiisi 7-segment
+STA 0B01H
+STA 0B02H
+STA 0B03H
+STA 0B04H
+STA 0B05H
+CALL STDM		
+CALL DCD
+
+START:
+	LXI D,0B00H
+	MVI B,00H		;Arxikopoiisi metriti dekadon
+	LDA 2000H		
+	MOV C,A		
+	ANI 80H
+	CPI 80H		;elegxos gia thetikous/arnitikous
+	JNZ CHECK
+	MOV A,C
+	CMA			;metatropi simpliromatos gia arnitiko
+	INR A
+	CPI 64H
+	MOV C,A
+	MVI A,1CH
+	STA 0B02H		;anavo to 7-segment gia to -
+	MOV A,C
+	JNC LED_LO	;an einai x<-99 anavo to Lo
+
+DEC:				;metatropi duadikou se dekadiko
+	CPI 09H
+	JC LED_ON
+	JZ LED_ON
+	INR B
+	SUI 0AH
+	JMP DEC
+
+LED_ON:			;emfanizo sta 7-seg ton arithmo pou proekipse
+	STA 0B00H
+	MOV A,B
+	STA 0B01H
+	CALL STDM
+	CALL DCD
+JMP START
+
+CHECK:
+	MOV A,C		;tsekaro an einai x>99
+	CPI 64H
+	MVI A,10H
+	STA 0B02H		;svino to - kathos milame gia thetiko arithmo
+	MOV A,C
+	JC DEC
+	MVI A,11H		;emfanizo sta 7-seg to HI
+	STA 0B01H
+	MVI A,19H
+	STA 0B00H
+	CALL STDM
+	CALL DCD
+	JMP START
+
+LED_LO:			;emfanisi -Lo sta 7-seg
+	MVI A,12H
+	STA 0B01H
+	MVI A,15H
+	STA 0B00H
+	MVI A,1CH
+	STA 0B02H
+	CALL STDM
+	CALL DCD
+	JMP START
+
+END
+
+

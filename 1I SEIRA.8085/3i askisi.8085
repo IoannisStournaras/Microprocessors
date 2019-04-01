@@ -1,0 +1,63 @@
+IN 10H
+MVI L,00H		;mhdenizw to metrhth twn interupts	
+MVI E,00H		;mhdenizw to metrhth (interupts - xronometro)
+MVI H,00H		;autos o metritis einai apla o L olisthimenos kata 4 theseis sta aristera
+LXI B,0BB8H	;vazw to orisma ths DELB iso me 100 gia 0,1s
+MVI A,0DH		;arxika mhdenizw oles tis diakopes
+SIM		
+
+READ_INTR:
+	DI
+	MVI A,01H		;Xrisimopoio 1 bit gia elegxo
+	STA 0B00H		;to opoio sozo stin mnimi
+	DI
+	CALL DELB		
+	EI
+	DI
+	INR E		;au3anw ton metriti 
+	MOV A,E							
+	ANI 0FH
+	ADD H
+	CMA
+	STA 3000H
+CHECK:
+	LDA 2000H		;diavazw thn eisoodo	
+	ANI 80H		;apomononwn to MSB	
+	JZ READ_INTR	;ean auto einai mhden tote sunexizw xwris diakopes
+	MVI A,00H
+	STA 0B00H		;allios allazo to bit elegxou
+	EI
+	DI
+	CALL DELB
+	EI
+	INR E		
+	MOV A,E							
+	ANI 0FH
+	ADD H
+	CMA
+	STA 3000H
+	JMP CHECK
+
+
+
+
+INTR_ROUTINE:
+	PUSH PSW
+	PUSH B
+	LDA 0B00H		;tsekaro to bit elegxou
+	CPI 01H		; an exei ginei diakopi eno einai apenergopoiimenes
+	JZ TELOS		;epistrefei xoris na auksisei ton metriti diakopon
+	INR L		;au3anw ton metriti twn interupts	
+	MOV A,L
+	ANI 0FH	;krataw ta prwta 4 bits giati einai mod 16
+	RLC
+	RLC
+	RLC	
+	RLC		;kanw 4 fores olisthisi gia na emfanistei sta MSB
+	MOV H,A
+TELOS:	
+	POP B
+	POP PSW
+	RET
+
+END

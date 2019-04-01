@@ -1,0 +1,63 @@
+	LXI B,03E8H		;1 sec
+MAIN:
+	MVI A,00H		;OFF Leds
+	CMA 			;
+	STA 3000H		;
+	CMA			;
+	LDA 2000H		;
+	ANI 80H		;MSB SW on?
+	CPI 00H		;
+	JZ MAIN		;
+	LDA 2000H		;
+	ANI 0FH		;
+	CPI 00H		;4LSB SW on?
+	JZ MAIN		;
+	MOV D,A		;D=4LSB
+	MVI A,00H		;
+CUP:
+	CMA 			;
+	STA 3000H		;
+	CMA			;
+	CALL DELB		;Delay 1 sec
+	MOV E,A		;
+	LDA 2000H		;
+	ANI 80H		;MSB SW on?
+	CPI 00H		;
+	MOV A,E		;
+	JZ CUP			;
+	MOV E,A		;
+	LDA 2000H		;
+	ANI 0FH		;
+	CMP D			;4LSB=4LSB'
+	JNZ MAIN		;
+	MOV A,E		;
+	INR A			;A=A+1
+	ANI 0FH		;
+	CMP D			;4LSB=4LSB
+	JNZ CUP		;
+CDOWN:
+	CMA 			;
+	STA 3000H		;
+	CMA			;
+	CALL DELB		;Delay 1 sec
+	MOV E,A		;
+	LDA 2000H		;
+	ANI 80H		;
+	CPI 00H		;MSB SW on?
+	MOV A,E		;
+	JZ CDOWN		;
+	MOV E,A		;
+	LDA 2000H		;
+	ANI 0FH		;
+	CMP D			;4LSB=4LSB'
+	JNZ MAIN		;
+	MOV A,E		;
+	DCR A			;A=A-1
+	ANI 0FH		;
+	CPI 00H		;4LSB=D?
+	JNZ CDOWN		;
+	JMP CUP		;Loop
+	END			
+	
+	
+	
